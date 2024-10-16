@@ -70,6 +70,38 @@ router.delete('/:id',(req,res)=>{
     .catch(err=>{res.status(404).json({errore : err})});
 });
 
+//getAllByIdAtt
+router.get('/byIdAtt/:idAtt',(req,res)=>{
+    OraAtt.find({ _idAtt: req.params.idAtt })
+    .then(oreAtt => { res.status(200).json(oreAtt); })
+    .catch(err => { res.status(400).json({ errore: err }); })
+});
+
+//getSumbyIdAtt
+router.get('/sumByIdAtt/:idAtt',(req,res)=>{
+    OraAtt.aggregate([
+        {
+            $match:{
+                _idAtt: new mongoose.Types.ObjectId(req.params.idAtt)
+            }
+        },
+        {
+            $group:{
+                _id:"$_idAtt",
+                totalOra:{$sum:"$ora"}
+            }
+        }
+    ]).exec()
+    .then(result =>{
+        if(result.length > 0){
+            res.status(200).json({_idAtt:req.params.idAtt,totalOra:result[0].totalOra});
+        }else{
+            res.status(404).json({errore:`nessun recond trovato con l'_idAtt: ${req.params.idAtt}`})
+        }
+    })
+    .catch(err=>{res.status(400).json({errore: err});});
+})
+
 
 module.exports = router;
 
